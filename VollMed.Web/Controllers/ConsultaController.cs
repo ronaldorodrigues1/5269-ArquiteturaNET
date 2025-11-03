@@ -80,6 +80,29 @@ namespace VollMed.Web.Controllers
             return View(receita);
         }
 
+        [HttpPost]
+        [Route("salvarreceita")]
+        public async Task<IActionResult> SalvarReceita([FromForm] ReceitaDto dados)
+        {
+
+            if (!ModelState.IsValid)
+            {
+
+                return View("formularioatendimento", dados);
+            }
+
+            try
+            {
+                await _vollMedApiService.WithContext(HttpContext).GerarReceita(dados);
+                return Redirect("/listarconsultas/1");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Erro = ex.Message;
+                ViewBag.Dados = dados;
+                return RedirectToAction("formularioatendimento", dados.Id);
+            }
+        }
 
     }
 }

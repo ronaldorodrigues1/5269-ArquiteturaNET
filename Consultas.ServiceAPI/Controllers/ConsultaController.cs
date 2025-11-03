@@ -69,6 +69,25 @@ namespace Consultas.ServiceAPI.Controllers
             return Ok();
         }
 
+        [HttpPut("gerarReceita")]
+        [HttpPost("gerarReceita")]
+        public async Task<IActionResult> GerarReceitaAsync([FromBody] ReceitaDto dados)
+        {
+            try
+            {
+                var resultado = await _consultaservice.GerarReceitaAsync(dados);
+                return Ok(resultado);
+            }
+            catch (RegraDeNegocioException ex)
+            {
+                return BadRequest(new { mensagem = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensagem = $"Erro interno: {ex.Message}" });
+            }
+        }
+
         [HttpGet("listarReceitasporconsulta")]
         public async Task<IActionResult> ListarReceitasByConsultaIdAsync([FromQuery]long consultaId, int page = 1)
         {

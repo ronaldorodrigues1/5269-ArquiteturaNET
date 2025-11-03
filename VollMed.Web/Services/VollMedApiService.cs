@@ -110,6 +110,7 @@ namespace VollMed.Web.Services
         {
             throw new NotImplementedException();
         }
+
         #endregion
 
         #region Medico
