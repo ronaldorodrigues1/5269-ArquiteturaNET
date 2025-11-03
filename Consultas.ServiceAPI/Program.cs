@@ -2,6 +2,7 @@ using Consultas.ServiceAPI.Data;
 using Consultas.ServiceAPI.Interfaces;
 using Consultas.ServiceAPI.Repositories;
 using Consultas.ServiceAPI.Services;
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,6 +40,22 @@ builder.Services.AddCors(opt =>
         .AllowAnyMethod()
         .AllowAnyHeader());
 });
+
+//MassTransit
+builder.Services.AddMassTransit(x =>
+{
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host("localhost", "/", h =>
+        {
+            h.Username("guest");
+            h.Password("guest");
+        });
+
+        cfg.ConfigureEndpoints(context);
+    });
+});
+
 
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();

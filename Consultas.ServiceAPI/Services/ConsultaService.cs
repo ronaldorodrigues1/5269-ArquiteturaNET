@@ -3,6 +3,8 @@ using Consultas.ServiceAPI.Domain;
 using Consultas.ServiceAPI.Dto;
 using Consultas.ServiceAPI.Exceptions;
 using Consultas.ServiceAPI.Interfaces;
+using MassTransit;
+using VollMed.Messages;
 
 
 namespace Consultas.ServiceAPI.Services
@@ -12,14 +14,15 @@ namespace Consultas.ServiceAPI.Services
         private readonly IConsultaRepository _consultaRepository;
         private readonly IMedicoRepository _medicoRepository;
         private readonly IPacienteRepository _pacienteRepository;
+        private readonly IPublishEndpoint _publishEndpoint;
         private const int PageSize = 5;
 
-        public ConsultaService(IConsultaRepository consultaRepository, IMedicoRepository medicoRepository, IPacienteRepository pacienteRepository)
+        public ConsultaService(IConsultaRepository consultaRepository, IMedicoRepository medicoRepository, IPacienteRepository pacienteRepository, IPublishEndpoint publishEndpoint)
         {
             _consultaRepository = consultaRepository;
             _medicoRepository = medicoRepository;
             _pacienteRepository = pacienteRepository;
-
+            _publishEndpoint = publishEndpoint;
         }
 
         public async Task<PaginatedList<ConsultaDto>> ListarAsync(int? page)
@@ -93,6 +96,83 @@ namespace Consultas.ServiceAPI.Services
             var receitas = _consultaRepository.GetAllReceitaByConsultaId(consultaId);
             IQueryable<ReceitaDto> dtos = receitas.Select(c => new ReceitaDto(c));
             return await PaginatedList<ReceitaDto>.CreateAsync(dtos, page ?? 1, PageSize);
+        }
+
+        public async Task<ReceitaResultadoOperacaoDto> GerarReceitaAsync(ReceitaDto dados)
+        {
+            if (dados.Id == 0)
+            {
+                // 1️⃣ Cria e salva a receita
+                var receita = new Receita(dados);
+                await _consultaRepository.SaveReceitaAsync(receita);
+
+                // 2️⃣ Tenta publicar o evento de forma segura
+                try
+                {
+                    await PublicarEventoReceitaAsync(dados);
+                    return new ReceitaResultadoOperacaoDto
+                    {
+                        Sucesso = true,
+                        Mensagem = "Receita salva e evento publicado com sucesso."
+                    };
+                }
+                catch (Exception ex)
+                {
+                    // Loga o erro mas não interrompe o retorno
+                    Console.WriteLine($"[RabbitMQ] Falha ao publicar evento: {ex.Message}");
+                    return new ReceitaResultadoOperacaoDto
+                    {
+                        Sucesso = true,
+                        Mensagem = "Receita salva, mas houve falha ao publicar no RabbitMQ."
+                    };
+                }
+            }
+
+            return new ReceitaResultadoOperacaoDto
+            {
+                Sucesso = false,
+                Mensagem = "Receita já existente, nenhuma ação executada."
+            };
+        }
+
+        public async Task<ReceitaResultadoOperacaoDto> PublicarMessageRabbitTeste(ReceitaDto dados)
+        {
+            try
+            {
+                await PublicarEventoReceitaAsync(dados);
+
+            }
+            catch (Exception ex)
+            {
+                // Loga o erro mas não interrompe o retorno
+                Console.WriteLine($"[RabbitMQ] Falha ao publicar evento: {ex.Message}");
+                return new ReceitaResultadoOperacaoDto
+                {
+                    Sucesso = true,
+                    Mensagem = "Receita salva, mas houve falha ao publicar no RabbitMQ."
+                };
+            }
+            return new ReceitaResultadoOperacaoDto
+            {
+                Sucesso = false,
+                Mensagem = "Receita já existente, nenhuma ação executada."
+            };
+        }
+
+        private async Task PublicarEventoReceitaAsync(ReceitaDto dados)
+        {
+            var evento = new ReceitaGeradaEvent(
+                Guid.NewGuid(),
+                dados.MedicoNome,
+                dados.PacienteNome,
+                dados.PacienteEmail,
+                dados.DataReceita.ToShortDateString(),
+                dados.Descricao
+            );
+
+            await _publishEndpoint.Publish(evento);
+
+            Console.WriteLine($"[RabbitMQ] Evento publicado para o paciente {dados.PacienteNome}");
         }
 
 

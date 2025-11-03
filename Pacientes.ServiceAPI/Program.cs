@@ -1,5 +1,7 @@
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using pacientes.ServiceAPI.Services;
+using Pacientes.ServiceAPI.Consumers;
 using Pacientes.ServiceAPI.Data;
 using Pacientes.ServiceAPI.Interfaces;
 using Pacientes.ServiceAPI.Repository;
@@ -23,6 +25,28 @@ builder.Services.AddCors(opt =>
         .AllowAnyMethod()
         .AllowAnyHeader());
 });
+
+
+builder.Services.AddMassTransit(x =>
+{
+    // Registramos o consumer no MassTransit
+    x.AddConsumer<ReceitaGeradaConsumer>();
+
+    // Configuração do RabbitMQ
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host("localhost", "/", h =>
+        {
+            h.Username("guest");
+            h.Password("guest");
+        });
+
+        // Cria automaticamente a fila e binding para o evento
+        cfg.ConfigureEndpoints(context);
+    });
+});
+
+
 
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();

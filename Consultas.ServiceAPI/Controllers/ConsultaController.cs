@@ -76,5 +76,12 @@ namespace Consultas.ServiceAPI.Controllers
             return Ok(receita);
         }
 
+        [HttpPost("EnviarMessageRabbitTeste")]
+        public async Task<IActionResult> EnviarMessageRabbitAsync([FromBody] ReceitaDto dados)
+        {
+            var ret = await _consultaservice.PublicarMessageRabbitTeste(dados);
+            return Ok(ret);
+        }
+
     }
 }

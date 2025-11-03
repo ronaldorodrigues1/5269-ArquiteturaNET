@@ -10,6 +10,8 @@ namespace Consultas.ServiceAPI.Interfaces
         Task ExcluirAsync(long id);
         Task<PaginatedList<ConsultaDto>> ListarAsync(int? page);
         Task<PaginatedList<ReceitaDto>> ListarReceitasByReceitaIdAsync(long consultaId, int? page);
+        Task<ReceitaResultadoOperacaoDto> GerarReceitaAsync(ReceitaDto dados);
+        Task<ReceitaResultadoOperacaoDto> PublicarMessageRabbitTeste(ReceitaDto dados);
 
     }
 }
