@@ -1,5 +1,4 @@
 ﻿using VollMed.Web.Dtos;
-using VollMed.Web.Exceptions;
 using VollMed.Web.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,12 +10,11 @@ namespace VollMed.Web.Controllers
         private const string PaginaListagem = "Listagem";
         private const string PaginaCadastro = "Formulario";
 
-        private readonly IConsultaService _consultaservice;
         private readonly IVollMedApiService _vollMedApiService;
 
-        public ConsultaController(IConsultaService consultaService, IVollMedApiService vollMedApiService)
+        public ConsultaController(IVollMedApiService vollMedApiService)
+        : base()
         {
-            _consultaservice = consultaService;
             _vollMedApiService = vollMedApiService;
         }
 
@@ -24,22 +22,20 @@ namespace VollMed.Web.Controllers
         [Route("{page?}")]
         public async Task<IActionResult> ListarAsync([FromQuery] int page = 1)
         {
-            var consultasAtivas = await _consultaservice.ListarAsync(page);
-            ViewBag.Consultas = consultasAtivas;
+            PaginatedList<ConsultaDto> consultas = await _vollMedApiService.WithContext(HttpContext).ListarConsultas(page);
+            
+            ViewBag.Consultas = consultas;
             ViewData["Url"] = "Consultas";
-            return View(PaginaListagem, consultasAtivas);
+            return View(PaginaListagem, consultas);
         }
 
         [HttpGet]
         [Route("formulario/{id?}")]
-        public async Task<IActionResult> ObterFormularioAsync(long? id)
+        public async Task<IActionResult> ObterFormularioAsync(long id = 0)
         {
-            var dados = id.HasValue
-                ? await _consultaservice.CarregarPorIdAsync(id.Value)
-                : new ConsultaDto { Data = DateTime.Now };
-            PaginatedList<MedicoDto> medicos = await _vollMedApiService.WithContext(HttpContext).ListarMedicos(1);
-            ViewData["Medicos"] = medicos.Items;
-            return View(PaginaCadastro, dados);
+            FormularioConsultaDto formularioConsulta = await _vollMedApiService.WithContext(HttpContext).ObterFormularioConsulta(id);
+            ViewData["Medicos"] = formularioConsulta.Medicos;
+            return View(PaginaCadastro, formularioConsulta.Consulta);
         }
 
         [HttpPost]
@@ -48,28 +44,42 @@ namespace VollMed.Web.Controllers
         {
             if (dados._method == "delete")
             {
-                await _consultaservice.ExcluirAsync(dados.Id);
-                return Redirect("/consultas");
+                await _vollMedApiService.WithContext(HttpContext).ExcluirConsulta(dados.Id);
+                return Redirect("index");
             }
 
             if (!ModelState.IsValid)
             {
                 PaginatedList<MedicoDto> medicos = await _vollMedApiService.WithContext(HttpContext).ListarMedicos(1);
-                ViewData["Medicos"] = null; // medicos.Items;
+                ViewData["Medicos"] = medicos.Items;
                 return View(PaginaCadastro, dados);
             }
 
             try
             {
-                await _consultaservice.CadastrarAsync(dados);
-                return Redirect("/consultas");
+                await _vollMedApiService.WithContext(HttpContext).SalvarConsulta(dados);
+
+                return Redirect("Index");
             }
-            catch (RegraDeNegocioException ex)
+            catch (Exception ex)
             {
                 ViewBag.Erro = ex.Message;
                 ViewBag.Dados = dados;
                 return View(PaginaCadastro);
             }
         }
+
+        [HttpGet]
+        [Route("formularioatendimento/{id?}")]
+        public async Task<IActionResult> FormularioAtendimento(long id)
+        {
+
+            var formularioConsulta = await _vollMedApiService.WithContext(HttpContext).ObterFormularioConsulta(id);
+            var receita = new ReceitaDto(formularioConsulta.Consulta);
+
+            return View(receita);
+        }
+
+
     }
 }

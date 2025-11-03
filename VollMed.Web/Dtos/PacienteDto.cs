@@ -6,7 +6,7 @@ namespace VollMed.Web.Dtos
     public class PacienteDto
     {
 
-        public long? Id { get; set; }
+        public long Id { get; set; }
         public string _method { get; set; }
 
         [Required(ErrorMessage = "Campo obrigatório"), MinLength(1)]
@@ -24,17 +24,17 @@ namespace VollMed.Web.Dtos
         public string Telefone { get; set; }
 
 
-        public PacienteDto()
-        {
-        }
+        //public PacienteDto()
+        //{
+        //}
 
-        public PacienteDto(Paciente paciente)
-        {
-            Id = paciente.Id;
-            Nome = paciente.Nome;
-            Email = paciente.Email;
-            Telefone = paciente.Telefone;
-            Cpf = paciente.Cpf;
-        }
+        //public PacienteDto(Paciente paciente)
+        //{
+        //    Id = paciente.Id;
+        //    Nome = paciente.Nome;
+        //    Email = paciente.Email;
+        //    Telefone = paciente.Telefone;
+        //    Cpf = paciente.Cpf;
+        //}
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using NuGet.Packaging;
+using VollMed.Web.Interfaces;
 
 
 namespace VollMed.Web.Dtos

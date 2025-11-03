@@ -1,32 +1,33 @@
 @using VollMed.Web.Dtos;
 @model PaginatedList<VollMed.Web.Dtos.MedicoDto>
 
-    <main class="container">
-        <section class="card">
-            <h2 class="title">Listagem de médicos</h2>
+<main class="container">
+    <section class="card">
+        <h2 class="title">Listagem de médicos</h2>
 
-            <div class="table-controls">
-                <a href="@Url.Action("Formulario", "Medicos" )" class="btn btn-tertiary">
-                    <img src="~/assets/plus.png" alt="Ícone de adicionar" class="btn-icon">
-                    Novo Médico
-                </a>
-            </div>
+        <div class="table-controls">
+            <a href="@Url.Action("Formulario", "Medicos" )" class="btn btn-tertiary">
+                <img src="~/assets/plus.png" alt="Ícone de adicionar" class="btn-icon">
+                Novo Médico
+            </a>
+        </div>
 
-            <table class="tabela">
-                <thead>
+        <table class="tabela">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>CRM</th>
+                    <th>Especialidade</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var medico in Model.Items)
+                {
                     <tr>
-                        <th>Nome</th>
-                        <th>Email</th>
-                        <th>CRM</th>
-                        <th>Especialidade</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    @foreach (var medico in Model.Items)
-                    {
-                    <tr>
+                        @* <td>@Html.Raw(medico.Nome)</td> *@
                         <td>@medico.Nome</td>
                         <td>@medico.Email</td>
                         <td>@medico.Crm</td>
@@ -41,13 +42,13 @@
                             </a>
                         </td>
                     </tr>
-                    }
-                </tbody>
-            </table>
+                }
+            </tbody>
+        </table>
 
-            @await Html.PartialAsync("_paginacao", Model)
-        </section>
-    </main>
+        @await Html.PartialAsync("_paginacao", Model)
+    </section>
+</main>
 
-    <!-- Modal de Exclusão -->
-    @await Html.PartialAsync("_modal_excluir")
+<!-- Modal de Exclusão -->
+@await Html.PartialAsync("_Modal_Excluir")

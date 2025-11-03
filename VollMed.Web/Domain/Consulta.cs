@@ -4,11 +4,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VollMed.Web.Domain
 {
-    [Table("consultas")]
+
     public class Consulta
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+
         public long Id { get; private set; }
 
         public string Paciente { get; private set; }
@@ -17,19 +16,9 @@ namespace VollMed.Web.Domain
 
         public DateTime Data { get; private set; }
 
-        public Consulta() { }
 
-        public Consulta(ConsultaDto dados)
-        {
-            ModificarDados(dados);
-        }
 
-        public void ModificarDados(ConsultaDto dados)
-        {
-            MedicoId = dados.MedicoId;
-            Paciente = dados.Paciente;
-            Data = dados.Data;
-        }
+
     }
 }
 

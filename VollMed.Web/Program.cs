@@ -1,13 +1,9 @@
-using VollMed.Web.Data;
 using VollMed.Web.Filters;
 using VollMed.Web.Interfaces;
-using VollMed.Web.Repositories;
 using VollMed.Web.Services;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddScoped<ExceptionHandlerFilter>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews(options =>
@@ -15,23 +11,41 @@ builder.Services.AddControllersWithViews(options =>
     options.Filters.Add<ExceptionHandlerFilter>();
 });
 
-var connectionString = builder.Configuration.GetConnectionString("SqliteConnection");
-builder.Services.AddDbContext<ApplicationDbContext>(x => x.UseSqlite(connectionString));
+// Criar HttpClient singleton para cada API
+var consultasUrl = builder.Configuration["Services:Consultas"];
+if (string.IsNullOrWhiteSpace(consultasUrl))
+    throw new Exception("ApiConsultas URL não configurada corretamente.");
+var httpClientConsultas = new HttpClient { BaseAddress = new Uri(consultasUrl) };
 
-var uri = new Uri(builder.Configuration["Medicos.ServiceAPI.Url"]!);
-HttpClient httpClient = new HttpClient()
+var medicosUrl = builder.Configuration["Services:Medicos"];
+if (string.IsNullOrWhiteSpace(medicosUrl))
+    throw new Exception("ApiMedicos URL não configurada corretamente.");
+var httpClientMedicos = new HttpClient { BaseAddress = new Uri(medicosUrl) };
+
+var pacientesUrl = builder.Configuration["Services:Pacientes"];
+if (string.IsNullOrWhiteSpace(pacientesUrl))
+    throw new Exception("ApiPacientes URL não configurada corretamente.");
+var httpClientPacientes = new HttpClient { BaseAddress = new Uri(pacientesUrl) };
+
+// Registrar os HttpClients
+builder.Services.AddSingleton(httpClientConsultas);
+builder.Services.AddSingleton(httpClientMedicos);
+builder.Services.AddSingleton(httpClientPacientes);
+
+// Registrar o serviço MedVollApiService com dois HttpClients
+builder.Services.AddSingleton<IVollMedApiService>(sp =>
 {
-    BaseAddress = uri
-};
+    var config = sp.GetRequiredService<IConfiguration>();
+    var consultasClient = sp.GetRequiredService<HttpClient>(); // HttpClient de Consultas
+    var medicosClient = sp.GetRequiredService<HttpClient>();   // HttpClient de Médicos
+    var pacientesClient = sp.GetRequiredService<HttpClient>();   // HttpClient de Médicos
+    return new VollMedApiService(config, httpClientConsultas, httpClientMedicos, pacientesClient);
+});
 
-
-builder.Services.AddHttpClient<IVollMedApiService, VollMedApiService>();
-
-//builder.Services.AddTransient<IMedicoRepository, MedicoRepository>();
-//builder.Services.AddTransient<IMedicoService, MedicoService>();
-
-builder.Services.AddTransient<IConsultaRepository, ConsultaRepository>();
-builder.Services.AddTransient<IConsultaService, ConsultaService>();
+builder.Services.AddScoped<ExceptionHandlerFilter>();
+builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+builder.Services.AddRazorPages();
+builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
@@ -42,8 +56,8 @@ if (!app.Environment.IsDevelopment())
     app.UseStatusCodePagesWithReExecute("/erro/{0}");
 }
 
+app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
 
 app.UseAuthorization();
@@ -51,5 +65,7 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapRazorPages().RequireAuthorization();
 
 app.Run();

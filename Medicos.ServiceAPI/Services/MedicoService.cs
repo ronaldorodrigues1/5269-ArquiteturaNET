@@ -37,14 +37,14 @@ namespace Medicos.ServiceAPI.Services
                 throw new RegraDeNegocioException("E-mail ou CRM já cadastrado para outro médico!");
             }
 
-            if (dados.Id == null)
+            if (dados.Id == 0)
             {
                 var medico = new Medico(dados);
                 await _repository.InsertAsync(medico);
             }
             else
             {
-                var medico = await _repository.FindByIdAsync(dados.Id.Value);
+                var medico = await _repository.FindByIdAsync(dados.Id);
                 if (medico == null) throw new RegraDeNegocioException("Médico não encontrado.");
 
                 medico.AtualizarDados(dados);

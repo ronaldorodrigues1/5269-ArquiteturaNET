@@ -4,8 +4,8 @@ namespace VollMed.Web.Domain
 {
     public enum Especialidade
     {
-        [Display(Name = "Clínica Geral")]
-        ClinicaGeral = 0,
+        [Display(Name = "Especialidade")]
+        Especialidade = 0,
 
         [Display(Name = "Cardiologia")]
         Cardiologia = 1,

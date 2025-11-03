@@ -12,46 +12,56 @@ namespace VollMed.Web.Dtos
 
         [Required(ErrorMessage = "Campo obrigatório")]
         public long MedicoId { get; set; }
+
         [ValidateNever]
         public string MedicoNome { get; set; }
+
+        [Required(ErrorMessage = "Campo obrigatório")]
+        public long PacienteId { get; set; }
+
+        [ValidateNever]
+        public string PacienteNome { get; set; }
+
         [Required(ErrorMessage = "Campo obrigatório"), StringLength(11, MinimumLength = 11, ErrorMessage = "CPF deve ter 11 digitos")]
-        public string Paciente { get; set; }
+        public string PacienteCpf { get; set; }
+
         [Required(ErrorMessage = "Campo obrigatório"), DataType(DataType.DateTime)]
         public DateTime Data { get; set; }
+
         [Required(ErrorMessage = "Campo obrigatório")]
         public Especialidade Especialidade { get; set; }
 
-        public ConsultaDto()
-        {
-        }
+        //public ConsultaDto()
+        //{
+        //}
 
-        public ConsultaDto(
-            long Id,
-            long MedicoId,
-            string MedicoNome,
-            string Paciente,
+        //public ConsultaDto(
+        //    long Id,
+        //    long MedicoId,
+        //    string MedicoNome,
+        //    string Paciente,
             
-            DateTime Data,
-            Especialidade Especialidade
-        )
-        {
-            this.Id = Id;
-            this.MedicoId = MedicoId;
-            this.MedicoNome = MedicoNome;
-            this.Paciente = Paciente;
-            this.Data = Data;
-            this.Especialidade = Especialidade;
-        }
+        //    DateTime Data,
+        //    Especialidade Especialidade
+        //)
+        //{
+        //    this.Id = Id;
+        //    this.MedicoId = MedicoId;
+        //    this.MedicoNome = MedicoNome;
+        //    this.Paciente = Paciente;
+        //    this.Data = Data;
+        //    this.Especialidade = Especialidade;
+        //}
 
-        public ConsultaDto(Consulta consulta)
-        {
-            Id = consulta.Id;
-            MedicoId = consulta.MedicoId;
+        //public ConsultaDto(Consulta consulta)
+        //{
+        //    Id = consulta.Id;
+        //    MedicoId = consulta.MedicoId;
             
-            Paciente = consulta.Paciente;
-            Data = consulta.Data;
+        //    Paciente = consulta.Paciente;
+        //    Data = consulta.Data;
             
-        }
+        //}
 
 
     }

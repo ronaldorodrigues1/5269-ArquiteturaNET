@@ -1,0 +1,62 @@
+﻿@model VollMed.Web.Dtos.ReceitaDto
+@{
+    ViewData["Title"] = "Agendamento de Consultas";
+}
+
+<main class="container">
+    <section class="card form-card">
+        <h2 class="title">Agendamento de Consultas</h2>
+
+        <form method="post" asp-action="salvarreceita" asp-controller="Consultas">
+            <input type="hidden" name="_method" value="post">
+            <input type="hidden" asp-for="Id" value="0" />
+            <input type="hidden" asp-for="ConsultaId" />
+            <input type="hidden" asp-for="PacienteId" />
+            <input type="hidden" asp-for="MedicoId" />
+
+            <div class="form-group">
+                <label for="MedicoId">Médico</label>
+                @Model.MedicoNome
+                <input type="hidden" asp-for="MedicoNome" />
+               @*  <input type="hidden" asp-for="MedicoCrm" /> *@
+            </div>
+
+            <div class="form-group">
+                <label for="PacienteCpf">CPF do Paciente</label>
+                @Model.PacienteCpf
+                <input asp-for="PacienteCpf" type="hidden"  />
+            </div>
+
+            <div class="form-group">
+                <label for="cpf">Nome do Paciente</label>
+                @Model.PacienteNome
+                <input asp-for="PacienteNome" type="hidden"  />
+            </div>
+
+            <div class="form-group">
+                <label for="data">Data</label>
+                @Model.DataReceita
+                <input asp-for="DataReceita" type="hidden" class="form-control" required />
+            </div>
+
+            <div class="form-group">
+                <label for="PacienteEmail">E-mail do paciente</label>
+                <input asp-for="PacienteEmail" class="form-control" required />
+            </div>
+
+            <div class="form-group">
+                <label for="Receita">Receita</label>
+                <input asp-for="Descricao" class="form-control" required />
+            </div>
+
+            <div class="buttons">
+                <button type="submit" class="btn btn-primary">
+                    <img src="/assets/plus.png" alt="Ícone de adicionar" class="btn-icon">Salvar
+                </button>
+                <a href="@Url.Action(" Index", "Consultas" )" class="btn btn-secondary">
+                    <img src="~/assets/back.png" alt="Voltar" class="btn-icon">Voltar
+                </a>
+            </div>
+        </form>
+    </section>
+</main>
