@@ -22,7 +22,7 @@ namespace VollMed.Web.Controllers
         [Route("{page?}")]
         public async Task<IActionResult> ListarAsync([FromQuery] int page = 1)
         {
-            PaginatedList<ConsultaDto> consultas = await _vollMedApiService.WithContext(HttpContext).ListarConsultas(page);
+            PaginatedList<ConsultaDto> consultas = await _vollMedApiService.ListarConsultas(page);
             
             ViewBag.Consultas = consultas;
             ViewData["Url"] = "Consultas";
@@ -33,7 +33,7 @@ namespace VollMed.Web.Controllers
         [Route("formulario/{id?}")]
         public async Task<IActionResult> ObterFormularioAsync(long id = 0)
         {
-            FormularioConsultaDto formularioConsulta = await _vollMedApiService.WithContext(HttpContext).ObterFormularioConsulta(id);
+            FormularioConsultaDto formularioConsulta = await _vollMedApiService.ObterFormularioConsulta(id);
             ViewData["Medicos"] = formularioConsulta.Medicos;
             return View(PaginaCadastro, formularioConsulta.Consulta);
         }
@@ -44,22 +44,22 @@ namespace VollMed.Web.Controllers
         {
             if (dados._method == "delete")
             {
-                await _vollMedApiService.WithContext(HttpContext).ExcluirConsulta(dados.Id);
-                return Redirect("index");
+                await _vollMedApiService.ExcluirConsulta(dados.Id);
+                return RedirectToAction("index");
             }
 
             if (!ModelState.IsValid)
             {
-                PaginatedList<MedicoDto> medicos = await _vollMedApiService.WithContext(HttpContext).ListarMedicos(1);
+                PaginatedList<MedicoDto> medicos = await _vollMedApiService.ListarMedicos(1);
                 ViewData["Medicos"] = medicos.Items;
                 return View(PaginaCadastro, dados);
             }
 
             try
             {
-                await _vollMedApiService.WithContext(HttpContext).SalvarConsulta(dados);
+                await _vollMedApiService.SalvarConsulta(dados);
 
-                return Redirect("Index");
+                return RedirectToAction("Index");
             }
             catch (Exception ex)
             {
@@ -74,7 +74,7 @@ namespace VollMed.Web.Controllers
         public async Task<IActionResult> FormularioAtendimento(long id)
         {
 
-            var formularioConsulta = await _vollMedApiService.WithContext(HttpContext).ObterFormularioConsulta(id);
+            var formularioConsulta = await _vollMedApiService.ObterFormularioConsulta(id);
             var receita = new ReceitaDto(formularioConsulta.Consulta);
 
             return View(receita);
@@ -93,8 +93,8 @@ namespace VollMed.Web.Controllers
 
             try
             {
-                await _vollMedApiService.WithContext(HttpContext).GerarReceita(dados);
-                return Redirect("/listarconsultas/1");
+                await _vollMedApiService.GerarReceita(dados);
+                return RedirectToAction("/listarconsultas");
             }
             catch (Exception ex)
             {

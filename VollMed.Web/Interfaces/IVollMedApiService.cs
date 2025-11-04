@@ -6,7 +6,7 @@ namespace VollMed.Web.Interfaces
 {
     public interface IVollMedApiService : IBaseHttpService
     {
-        IVollMedApiService WithContext(HttpContext context);
+        //IVollMedApiService WithContext(HttpContext context);
 
         Task<PaginatedList<ConsultaDto>> ListarConsultas(int? page);
         Task<FormularioConsultaDto> ObterFormularioConsulta(long? consultaId);

@@ -24,7 +24,7 @@ namespace VollMed.Web.Controllers
         public async Task<IActionResult> ListarAsync([FromQuery] int page = 1)
         {
             var medicos = await _vollMedApiService   
-                .WithContext(HttpContext)
+                
                 .ListarMedicos(page);
             ViewBag.Consultas = medicos;
             ViewData["Url"] = "Medicos";
@@ -36,7 +36,7 @@ namespace VollMed.Web.Controllers
         public async Task<IActionResult> ObterFormularioAsync(long? id = 0)
         {
             MedicoDto medico = await _vollMedApiService
-                .WithContext(HttpContext)
+                
                 .ObterFormularioMedico(id);
             return View(PaginaCadastro, medico);
         }
@@ -48,15 +48,15 @@ namespace VollMed.Web.Controllers
             if (dados._method == "delete")
             {
                 await _vollMedApiService
-                    .WithContext(HttpContext)
+                    
                     .ExcluirMedico(dados.Id);
-                return Redirect("/medicos");
+                return RedirectToAction("/medicos");
             }
 
             if (!ModelState.IsValid)
             {
                 PaginatedList<MedicoDto> medicos = await _vollMedApiService
-                    .WithContext(HttpContext)
+                    
                     .ListarMedicos(1);
                 ViewData["Medicos"] = null; // medicos.Items.ToList();
                 return View(PaginaCadastro, dados);
@@ -65,9 +65,9 @@ namespace VollMed.Web.Controllers
             try
             {
                 await _vollMedApiService
-                    .WithContext(HttpContext)
+                    
                     .SalvarMedico(dados);
-                return Redirect("/medicos");
+                return RedirectToAction("/medicos");
             }
             catch (Exception ex)
             {
@@ -84,7 +84,7 @@ namespace VollMed.Web.Controllers
             if (Enum.TryParse(especialidade, out Especialidade especEnum))
             {
                 var medicos = await _vollMedApiService
-                    .WithContext(HttpContext)
+                    
                     .ListarMedicosPorEspecialidade(especEnum);
                 return Json(medicos);
             }

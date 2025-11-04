@@ -1,53 +1,44 @@
 ﻿using VollMed.Web.Dtos;
 using VollMed.Web.Interfaces;
 using VollMed.Web.Domain;
-using System.Net.Http;
 using System.Text.Json;
 
 namespace VollMed.Web.Services
 {
     public class VollMedApiService : IVollMedApiService
     {
-        private readonly HttpClient _httpClientConsultas;
-        private readonly HttpClient _httpClientMedicos;
-        private readonly HttpClient _httpClientPacientes;
-        private readonly IConfiguration _configuration;
-        private HttpContext _httpContext;
+        private readonly HttpClient _httpClientGateway;
 
         public string Scope => throw new NotImplementedException();
 
-        public VollMedApiService(
-            IConfiguration configuration,
-            HttpClient httpClientConsultas,
-            HttpClient httpClientMedicos,
-            HttpClient httpClientPacientes
-            )
+        public VollMedApiService(HttpClient httpGateway)
         {
-            _configuration = configuration;
-            _httpClientConsultas = httpClientConsultas;
-            _httpClientMedicos = httpClientMedicos;
-            _httpClientPacientes = httpClientPacientes;
+            _httpClientGateway = httpGateway;
         }
 
-        public IVollMedApiService WithContext(HttpContext context)
-        {
-            _httpContext = context;
-            return this;
-        }
-
+        // -------------------------------------------------------------------
+        // CONSULTA
+        // -------------------------------------------------------------------
         #region Consulta
+
         public async Task<PaginatedList<ConsultaDto>> ListarConsultas(int? page)
         {
-            var url = $"/api/consulta/listar?page={page ?? 1}";
-            var list = await _httpClientConsultas.GetFromJsonAsync<PaginatedList<ConsultaDto>>(url)
-                   ?? new PaginatedList<ConsultaDto>(new List<ConsultaDto>(), 0, page ?? 1, 10);
+            var url = $"{_httpClientGateway.BaseAddress}/consulta/listar?page={page ?? 1}";
+            Console.WriteLine($"[ListarConsultas] Chamando: {url}");
+
+            var list = await _httpClientGateway.GetFromJsonAsync<PaginatedList<ConsultaDto>>(url)
+                       ?? new PaginatedList<ConsultaDto>(new List<ConsultaDto>(), 0, page ?? 1, 10);
+
             return list;
         }
 
         public async Task<FormularioConsultaDto> ObterFormularioConsulta(long? consultaId)
         {
-            var url = $"/api/consulta/formulario/{consultaId}";
-            return await _httpClientConsultas.GetFromJsonAsync<FormularioConsultaDto>(url) ?? new FormularioConsultaDto();
+            var url = $"{_httpClientGateway.BaseAddress}/consulta/formulario/{consultaId}";
+            Console.WriteLine($"[ObterFormularioConsulta] {url}");
+
+            return await _httpClientGateway.GetFromJsonAsync<FormularioConsultaDto>(url)
+                   ?? new FormularioConsultaDto();
         }
 
         public async Task<ConsultaDto> SalvarConsulta(ConsultaDto input)
@@ -55,6 +46,7 @@ namespace VollMed.Web.Services
             if (string.IsNullOrEmpty(input.PacienteCpf))
                 throw new Exception("CPF do paciente é obrigatório!");
 
+            // Verifica se o paciente existe
             var pacienteExists = await ObterPacientePorCpf(input.PacienteCpf);
             if (pacienteExists == null)
             {
@@ -68,18 +60,16 @@ namespace VollMed.Web.Services
                     Cpf = input.PacienteCpf
                 };
 
-
                 var paciente = await SalvarPaciente(newPaciente);
                 input.PacienteId = paciente.Id;
                 input.PacienteNome = paciente.Nome;
                 input.PacienteCpf = paciente.Cpf;
-
             }
-                //throw new Exception("Paciente não encontrado na base.");
 
-            var url = "/api/consulta/salvar";
-            var response = await _httpClientConsultas.PostAsJsonAsync(url, input);
+            var url = $"{_httpClientGateway.BaseAddress}/consulta/salvar";
+            Console.WriteLine($"[SalvarConsulta] POST {url}");
 
+            var response = await _httpClientGateway.PostAsJsonAsync(url, input);
             response.EnsureSuccessStatusCode();
 
             return await response.Content.ReadFromJsonAsync<ConsultaDto>();
@@ -87,9 +77,10 @@ namespace VollMed.Web.Services
 
         public async Task<ReceitaResultadoOperacaoDto> GerarReceita(ReceitaDto input)
         {
-            var url = $"/api/consulta/gerarreceita";
+            var url = $"{_httpClientGateway.BaseAddress}/consulta/gerarreceita";
+            Console.WriteLine($"[GerarReceita] POST {url}");
 
-            var response = await _httpClientConsultas.PostAsJsonAsync(url, input);
+            var response = await _httpClientGateway.PostAsJsonAsync(url, input);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -113,18 +104,26 @@ namespace VollMed.Web.Services
 
         #endregion
 
+        // -------------------------------------------------------------------
+        // MÉDICO
+        // -------------------------------------------------------------------
         #region Medico
+
         public async Task<MedicoDto> ObterFormularioMedico(long? medicoId)
         {
-            var url = $"/api/medico/formulario/{medicoId}";
-            var response = await _httpClientMedicos.GetFromJsonAsync<MedicoDto>(url);
-            return await _httpClientMedicos.GetFromJsonAsync<MedicoDto>(url) ?? new MedicoDto();
+            var url = $"{_httpClientGateway.BaseAddress}/medico/formulario/{medicoId}";
+            Console.WriteLine($"[ObterFormularioMedico] GET {url}");
+
+            return await _httpClientGateway.GetFromJsonAsync<MedicoDto>(url)
+                   ?? new MedicoDto();
         }
 
         public async Task<IEnumerable<MedicoDto>> ListarMedicosPorEspecialidade(Especialidade especEnum)
         {
-            var url = $"/api/medico/especialidade/{(int)especEnum}";
-            return await _httpClientMedicos.GetFromJsonAsync<IEnumerable<MedicoDto>>(url)
+            var url = $"{_httpClientGateway.BaseAddress}/medico/especialidade/{(int)especEnum}";
+            Console.WriteLine($"[ListarMedicosPorEspecialidade] GET {url}");
+
+            return await _httpClientGateway.GetFromJsonAsync<IEnumerable<MedicoDto>>(url)
                    ?? Enumerable.Empty<MedicoDto>();
         }
 
@@ -132,23 +131,27 @@ namespace VollMed.Web.Services
         {
             try
             {
-                var url = $"/api/medico/listar?page={page ?? 1}";
-                Console.WriteLine($"Chamando URL: {_httpClientMedicos.BaseAddress}{url}");
-                return await _httpClientMedicos.GetFromJsonAsync<PaginatedList<MedicoDto>>(url)
-                       ?? new PaginatedList<MedicoDto>(new List<MedicoDto>(), 0, page ?? 1, 10);
+                var url = $"{_httpClientGateway.BaseAddress}/medico/listar?page={page ?? 1}";
+                Console.WriteLine($"[ListarMedicos] GET {url}");
+
+                var lista = await _httpClientGateway.GetFromJsonAsync<PaginatedList<MedicoDto>>(url);
+                return lista ?? new PaginatedList<MedicoDto>(new List<MedicoDto>(), 0, page ?? 1, 10);
             }
             catch (Exception ex)
             {
-                var x = ex.Message;
+                Console.WriteLine($"[ListarMedicos] ERRO: {ex.Message}");
                 return new PaginatedList<MedicoDto>();
             }
         }
 
         public async Task<MedicoDto> SalvarMedico(MedicoDto input)
         {
-            var url = "/api/medico/salvar";
-            var response = await _httpClientMedicos.PostAsJsonAsync(url, input);
+            var url = $"{_httpClientGateway.BaseAddress}/medico/salvar";
+            Console.WriteLine($"[SalvarMedico] POST {url}");
+
+            var response = await _httpClientGateway.PostAsJsonAsync(url, input);
             response.EnsureSuccessStatusCode();
+
             return await response.Content.ReadFromJsonAsync<MedicoDto>();
         }
 
@@ -156,55 +159,50 @@ namespace VollMed.Web.Services
         {
             throw new NotImplementedException();
         }
+
         #endregion
 
-        #region Paciente 
+        // -------------------------------------------------------------------
+        // PACIENTE
+        // -------------------------------------------------------------------
+        #region Paciente
+
         public async Task<PacienteDto> ObterPacientePorCpf(string pacienteCpf)
         {
-            var url = $"/api/Paciente/formularioporcpf/{pacienteCpf}";
-            var response = await _httpClientPacientes.GetAsync(url);
+            var url = $"{_httpClientGateway.BaseAddress}/paciente/formularioporcpf/{pacienteCpf}";
+            Console.WriteLine($"[ObterPacientePorCpf] GET {url}");
+
+            var response = await _httpClientGateway.GetAsync(url);
             if (response.IsSuccessStatusCode)
                 return await response.Content.ReadFromJsonAsync<PacienteDto>();
+
             return null;
         }
 
-
         public async Task<PacienteDto> SalvarPaciente(PacienteDto input)
         {
-            // Ajuste a URL conforme seu BaseAddress:
-            // se BaseAddress = https://localhost:7218/api -> usar "Paciente/salvar"
-            // se BaseAddress = https://localhost:7218     -> usar "api/Paciente/salvar"
-            var url = $"/api/Paciente/salvar";
+            var url = $"{_httpClientGateway.BaseAddress}/paciente/salvar";
 
-            // Log do JSON enviado
             var json = JsonSerializer.Serialize(input);
-            Console.WriteLine($"[SalvarPaciente] Enviando para {new Uri(_httpClientPacientes.BaseAddress, url)}:\n{json}");
+            Console.WriteLine($"[SalvarPaciente] POST {url}");
+            Console.WriteLine($"[SalvarPaciente] Payload:\n{json}");
 
-            var response = await _httpClientPacientes.PostAsJsonAsync(url, input);
+            var response = await _httpClientGateway.PostAsJsonAsync(url, input);
+            var respText = await response.Content.ReadAsStringAsync();
 
             Console.WriteLine($"[SalvarPaciente] StatusCode: {response.StatusCode}");
-            var respText = await response.Content.ReadAsStringAsync();
-            Console.WriteLine($"[SalvarPaciente] Response content: {respText}");
+            Console.WriteLine($"[SalvarPaciente] Response: {respText}");
 
             if (!response.IsSuccessStatusCode)
-            {
-                // Lança com detalhe para você ver no caller
                 throw new Exception($"Erro ao salvar paciente. Status: {response.StatusCode}. Conteúdo: {respText}");
-            }
 
             return await response.Content.ReadFromJsonAsync<PacienteDto>();
         }
-
-
-
 
         public Task ExcluirPaciente(long pacienteId)
         {
             throw new NotImplementedException();
         }
-
-
-
 
         #endregion
     }
