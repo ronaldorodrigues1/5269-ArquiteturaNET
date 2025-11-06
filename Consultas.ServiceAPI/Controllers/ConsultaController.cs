@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Consultas.ServiceAPI.Controllers
 {
+    [Authorize(Policy = "ApiScope")]
     [Route("api/[controller]")]
     [ApiController]
     public class ConsultaController : ControllerBase

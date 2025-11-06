@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Pacientes.ServiceAPI.Dto;
 using Pacientes.ServiceAPI.Exceptions;
 using Pacientes.ServiceAPI.Interfaces;
 
 namespace Pacientes.ServiceAPI.Controllers
 {
+    [Authorize(Policy = "ApiScope")]
     [Route("api/[controller]")]
     [ApiController]
     public class PacienteController : ControllerBase

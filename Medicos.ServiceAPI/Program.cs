@@ -19,6 +19,22 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddTransient<IMedicoRepository, MedicoRepository>();
 builder.Services.AddTransient<IMedicoService, MedicoService>();
 
+//Autentication
+builder.Services.AddAuthentication("Bearer")
+    .AddJwtBearer("Bearer", options =>
+    {
+        options.Authority = "https://localhost:5001";
+        options.Audience = "https://localhost:5001/resources";
+        options.TokenValidationParameters.ValidateAudience = false;
+    });
+
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("ApiScope", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("scope", "Medicos.ServiceAPI.Scope");
+    });
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -30,8 +46,9 @@ if(app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapControllers().RequireAuthorization("ApiScope");
 
 app.Run();

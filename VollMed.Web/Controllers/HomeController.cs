@@ -1,9 +1,12 @@
 ﻿using VollMed.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 
 namespace VollMed.Web.Controllers
 {
+    
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -16,6 +19,17 @@ namespace VollMed.Web.Controllers
         public IActionResult Index()
         {
             return View();
+        }
+
+        [HttpPost]
+        public IActionResult Logout()
+        {
+            return SignOut(new AuthenticationProperties
+            {
+                RedirectUri = "/"
+            },
+            "Cookies",     // Faz o sign-out do cookie local
+            "oidc");       // Faz o sign-out do provedor externo (OpenID Connect)
         }
 
         public IActionResult Privacy()

@@ -7,9 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Medicos.ServiceAPI.Controllers
 {
+    [Authorize(Policy = "ApiScope")]
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize]
     public class MedicoController : ControllerBase
     {
         private readonly IMedicoService _service;

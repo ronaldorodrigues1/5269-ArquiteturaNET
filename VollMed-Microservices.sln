@@ -15,7 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Consultas.ServiceAPI", "Con
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VollMed.Messages", "VollMed.Messages\VollMed.Messages.csproj", "{DD99D787-655F-484E-ACBA-9BB988B8CA08}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VollMed.GatewayAPI", "VollMed.GatewayAPI\VollMed.GatewayAPI.csproj", "{B8D5B039-8FDA-4D18-9DE5-3A72AF583E13}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VollMed.GatewayAPI", "VollMed.GatewayAPI\VollMed.GatewayAPI.csproj", "{B8D5B039-8FDA-4D18-9DE5-3A72AF583E13}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VollMed.Identity", "VollMed.Identity\VollMed.Identity.csproj", "{C6205B70-9886-416B-AC66-536A78890492}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -47,6 +49,10 @@ Global
 		{B8D5B039-8FDA-4D18-9DE5-3A72AF583E13}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B8D5B039-8FDA-4D18-9DE5-3A72AF583E13}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B8D5B039-8FDA-4D18-9DE5-3A72AF583E13}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6205B70-9886-416B-AC66-536A78890492}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6205B70-9886-416B-AC66-536A78890492}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6205B70-9886-416B-AC66-536A78890492}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6205B70-9886-416B-AC66-536A78890492}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

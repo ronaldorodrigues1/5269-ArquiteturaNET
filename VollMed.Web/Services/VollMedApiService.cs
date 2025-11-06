@@ -2,18 +2,32 @@
 using VollMed.Web.Interfaces;
 using VollMed.Web.Domain;
 using System.Text.Json;
+using System.Net.Http.Headers;
+using Microsoft.AspNetCore.Authentication;
 
 namespace VollMed.Web.Services
 {
     public class VollMedApiService : IVollMedApiService
     {
         private readonly HttpClient _httpClientGateway;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public string Scope => throw new NotImplementedException();
 
-        public VollMedApiService(HttpClient httpGateway)
+        public VollMedApiService(HttpClient httpGateway, IHttpContextAccessor httpContextAccessor)
         {
             _httpClientGateway = httpGateway;
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        private async Task AddBearerTokenAsync()
+        {
+            var accessToken = await _httpContextAccessor.HttpContext.GetTokenAsync("access_token");
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                _httpClientGateway.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", accessToken);
+            }
         }
 
         // -------------------------------------------------------------------
@@ -23,6 +37,7 @@ namespace VollMed.Web.Services
 
         public async Task<PaginatedList<ConsultaDto>> ListarConsultas(int? page)
         {
+            await AddBearerTokenAsync();
             var url = $"{_httpClientGateway.BaseAddress}/consulta/listar?page={page ?? 1}";
             Console.WriteLine($"[ListarConsultas] Chamando: {url}");
 
@@ -34,6 +49,7 @@ namespace VollMed.Web.Services
 
         public async Task<FormularioConsultaDto> ObterFormularioConsulta(long? consultaId)
         {
+            await AddBearerTokenAsync();
             var url = $"{_httpClientGateway.BaseAddress}/consulta/formulario/{consultaId}";
             Console.WriteLine($"[ObterFormularioConsulta] {url}");
 
@@ -66,6 +82,7 @@ namespace VollMed.Web.Services
                 input.PacienteCpf = paciente.Cpf;
             }
 
+            await AddBearerTokenAsync();
             var url = $"{_httpClientGateway.BaseAddress}/consulta/salvar";
             Console.WriteLine($"[SalvarConsulta] POST {url}");
 
@@ -77,6 +94,7 @@ namespace VollMed.Web.Services
 
         public async Task<ReceitaResultadoOperacaoDto> GerarReceita(ReceitaDto input)
         {
+            await AddBearerTokenAsync();
             var url = $"{_httpClientGateway.BaseAddress}/consulta/gerarreceita";
             Console.WriteLine($"[GerarReceita] POST {url}");
 
@@ -111,6 +129,7 @@ namespace VollMed.Web.Services
 
         public async Task<MedicoDto> ObterFormularioMedico(long? medicoId)
         {
+            await AddBearerTokenAsync();
             var url = $"{_httpClientGateway.BaseAddress}/medico/formulario/{medicoId}";
             Console.WriteLine($"[ObterFormularioMedico] GET {url}");
 
@@ -120,6 +139,7 @@ namespace VollMed.Web.Services
 
         public async Task<IEnumerable<MedicoDto>> ListarMedicosPorEspecialidade(Especialidade especEnum)
         {
+            await AddBearerTokenAsync();
             var url = $"{_httpClientGateway.BaseAddress}/medico/especialidade/{(int)especEnum}";
             Console.WriteLine($"[ListarMedicosPorEspecialidade] GET {url}");
 
@@ -131,6 +151,7 @@ namespace VollMed.Web.Services
         {
             try
             {
+                await AddBearerTokenAsync();
                 var url = $"{_httpClientGateway.BaseAddress}/medico/listar?page={page ?? 1}";
                 Console.WriteLine($"[ListarMedicos] GET {url}");
 
@@ -146,6 +167,7 @@ namespace VollMed.Web.Services
 
         public async Task<MedicoDto> SalvarMedico(MedicoDto input)
         {
+            await AddBearerTokenAsync();
             var url = $"{_httpClientGateway.BaseAddress}/medico/salvar";
             Console.WriteLine($"[SalvarMedico] POST {url}");
 
@@ -169,6 +191,7 @@ namespace VollMed.Web.Services
 
         public async Task<PacienteDto> ObterPacientePorCpf(string pacienteCpf)
         {
+            await AddBearerTokenAsync();
             var url = $"{_httpClientGateway.BaseAddress}/paciente/formularioporcpf/{pacienteCpf}";
             Console.WriteLine($"[ObterPacientePorCpf] GET {url}");
 
@@ -181,6 +204,7 @@ namespace VollMed.Web.Services
 
         public async Task<PacienteDto> SalvarPaciente(PacienteDto input)
         {
+            await AddBearerTokenAsync();
             var url = $"{_httpClientGateway.BaseAddress}/paciente/salvar";
 
             var json = JsonSerializer.Serialize(input);
